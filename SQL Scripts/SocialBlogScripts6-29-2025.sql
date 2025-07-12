@@ -37,3 +37,4 @@ INSERT INTO Comments(Content, Likes, UserId, PostId) VALUES ('I find this post i
 SELECT * FROM Users;
 SELECT * FROM Posts;
 SELECT * FROM Comments;
+

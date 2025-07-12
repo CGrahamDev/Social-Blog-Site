@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using social_blog_API.DTOs.Comments;
 using social_blog_API.Entities;
 
 namespace social_blog_API.Controllers
@@ -24,7 +25,16 @@ namespace social_blog_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
         {
-            return await _context.Comments.ToListAsync();
+            var commentList = await _context.Comments.ToListAsync();
+            var commentDTOs = commentList.Select(e => new CommentsDTO
+            {
+                Id = e.Id,
+                Content = e.Content,
+                Likes = e.Likes,
+                UserId = e.UserId,
+                PostId = e.PostId,
+            }).ToList();
+            return Ok(commentDTOs);
         }
 
         // GET: api/Comments/5
