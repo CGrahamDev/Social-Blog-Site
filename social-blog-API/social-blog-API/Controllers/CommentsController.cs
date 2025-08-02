@@ -87,6 +87,7 @@ namespace social_blog_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Comment>> PostComment(Comment comment)
         {
+
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 

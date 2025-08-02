@@ -1,11 +1,12 @@
-﻿namespace social_blog_API.DTOs.Users
+﻿using social_blog_API.Entities;
+
+namespace social_blog_API.DTOs.Users
 {
     public class CreateUsersDTO
     {
-        public string Title { get; set; } = null!;
-
-        public string Content { get; set; } = null!;
-
-        public int? AuthorId { get; set; }
+        public int Id { get; set; }
+        public string Username { get; set; } = null!;
+        public string? Password { get; set; }
+        public string? Description { get; set; }
     }
 }

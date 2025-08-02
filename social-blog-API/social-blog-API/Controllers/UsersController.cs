@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
+using social_blog_API.DTOs.Users;
 using social_blog_API.Entities;
+using System.Security.Cryptography;
+
 
 namespace social_blog_API.Controllers
 {
@@ -24,7 +29,18 @@ namespace social_blog_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users.ToListAsync();
+            var userDTO = users.Select(u => new UsersDTO
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Password = u.Password,
+                Description = u.Description,
+                Posts = u.Posts,
+                Comments = u.Comments
+                
+            });
+            return Ok(userDTO);
         }
 
         // GET: api/Users/5
@@ -75,12 +91,36 @@ namespace social_blog_API.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<CreateUsersDTO>> PostUser(CreateUsersDTO user)
         {
-            _context.Users.Add(user);
+
+
+            byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(user.Password);
+            byte[] tmpHash = MD5.HashData(tmpSource);
+            user.Password = tmpHash.ToString();
+            var newUser = new User
+            {
+                Username = user.Username,
+                Password = user.Password,
+                Description = user.Description,
+            };
+
+            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+
+            var createUser = new CreateUsersDTO()
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Password = newUser.Password,
+                Description = newUser.Description,
+            };
+            
+            return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
+            //TODO: ADD HASH FOR PASSWORDS WHEN CREATING ACCOUNTS AND MAKE IT SO THAT THAT WHEN LOGGING IN, A GET WILL BE CALLED AND THE PASSWORD THE USER INPUTS WILL BE HASED IN THE SAME WAY AND COMPARED TO THE DATABASES HASHED PASSWORD
+
+
         }
 
         // DELETE: api/Users/5

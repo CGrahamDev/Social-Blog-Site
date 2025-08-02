@@ -1,13 +1,18 @@
-﻿namespace social_blog_API.DTOs.Users
+﻿using social_blog_API.Entities;
+
+namespace social_blog_API.DTOs.Users
 {
     public class UsersDTO
     {
         public int Id { get; set; }
 
-        public string Title { get; set; } = null!;
+        public string Username { get; set; } = null!;
 
-        public string Content { get; set; } = null!;
+        public string? Password { get; set; }
 
-        public int? AuthorId { get; set; }
+        public string? Description { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
+
+        public virtual ICollection<Post> Posts { get; set; }
     }
 }
