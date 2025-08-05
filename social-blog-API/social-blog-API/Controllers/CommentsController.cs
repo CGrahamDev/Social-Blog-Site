@@ -51,7 +51,6 @@ namespace social_blog_API.Controllers
             return comment;
         }
 
-        //TODO: ADD A GET BY POST ID
         // GET: api/Comments/post/0
         [HttpGet("post/{postId}")]
         public async Task<ActionResult<Comment>> GetCommentByPost(int postId)

@@ -37,7 +37,6 @@ namespace social_blog_API.Controllers
                 Username = u.Username,
                 Password = u.Password,
                 Description = u.Description,
-                //TODO: DECIDE HOW TO HANDLE COMMENT AND POST DATA. ALSO MAKE A FEW MORE GET METHODS FOR PASS VERIFICATION AND REMOVE PASSWORD FROM THIS GET AT SOME POINT SO.
                 Posts = u.Posts,
                 Comments = u.Comments
                 
@@ -140,6 +139,7 @@ namespace social_blog_API.Controllers
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //READ LATER
         [HttpPost]
         public async Task<ActionResult<CreateUsersDTO>> PostUser(CreateUsersDTO user)
         {
@@ -168,8 +168,6 @@ namespace social_blog_API.Controllers
             };
             
             return CreatedAtAction("GetUser", new { id = newUser.Id }, newUser);
-            //TODO: ADD HASH FOR PASSWORDS WHEN CREATING ACCOUNTS AND MAKE IT SO THAT THAT WHEN LOGGING IN, A GET WILL BE CALLED AND THE PASSWORD THE USER INPUTS WILL BE HASED IN THE SAME WAY AND COMPARED TO THE DATABASES HASHED PASSWORD
-
 
         }
 
