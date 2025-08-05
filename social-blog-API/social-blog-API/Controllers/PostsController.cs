@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using social_blog_API.DTOs.Posts;
 using social_blog_API.Entities;
 
 namespace social_blog_API.Controllers
@@ -24,7 +28,15 @@ namespace social_blog_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
         {
-            return await _context.Posts.ToListAsync();
+            var postLists = await _context.Posts.ToListAsync();
+            var postDTO = postLists.Select(p => new PostDTO
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Content = p.Content,
+                AuthorId = p.AuthorId
+            });
+            return Ok(postDTO);
         }
 
         // GET: api/Posts/5
@@ -39,6 +51,48 @@ namespace social_blog_API.Controllers
             }
 
             return post;
+        }
+        // GET: api/Posts/user/5
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<PostDTO>> GetPostByUserId(int userId)
+        {
+            var postsList = await _context.Posts.Where(p => p.AuthorId == userId).ToListAsync();
+            if (postsList == null || postsList.Count == 0)
+            {
+                return NotFound();
+            }
+            var postsDTO = postsList.Select(p => new PostDTO
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Content = p.Content,
+                AuthorId = p.AuthorId
+            });
+            return Ok(postsDTO);
+        }
+
+        // GET: api/Posts/comment/5
+        [HttpGet("comment/{commentId}")]
+        public async Task<ActionResult<PostDTO>> GetPostByCommentId(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+            if (comment == null)
+            {
+                return NotFound();
+            }
+            var post = await _context.Posts.FindAsync(comment.PostId);
+            if (post == null )
+            {
+                return NotFound();
+            }
+            var postsDTO = new PostDTO
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                AuthorId = post.AuthorId
+            };
+            return postsDTO;
         }
 
         // PUT: api/Posts/5
@@ -75,12 +129,24 @@ namespace social_blog_API.Controllers
         // POST: api/Posts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Post>> PostPost(Post post)
+        public async Task<ActionResult<CreatePostsDTO>> PostPost(CreatePostsDTO postDTO)
         {
-            _context.Posts.Add(post);
+            var newPost = new Post
+            {
+                Title = postDTO.Title,
+                Content = postDTO.Content,
+                AuthorId = postDTO.AuthorId
+            };
+            _context.Posts.Add(newPost);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPost", new { id = post.Id }, post);
+            var createdPost = new CreatePostsDTO
+            {
+                Id = newPost.Id,
+                Title = newPost.Title,
+                Content = newPost.Content,
+                AuthorId = newPost.AuthorId
+            };
+            return CreatedAtAction("GetPost", new { id = newPost.Id }, createdPost);
         }
 
         // DELETE: api/Posts/5

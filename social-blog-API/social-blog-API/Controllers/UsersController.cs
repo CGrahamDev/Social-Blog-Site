@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol;
+using social_blog_API.DTOs.Comments;
 using social_blog_API.DTOs.Users;
 using social_blog_API.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 
 namespace social_blog_API.Controllers
@@ -30,12 +31,13 @@ namespace social_blog_API.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
-            var userDTO = users.Select(u => new UsersDTO
+            var userDTO = users.Select(u => new UserDTO
             {
                 Id = u.Id,
                 Username = u.Username,
                 Password = u.Password,
                 Description = u.Description,
+                //TODO: DECIDE HOW TO HANDLE COMMENT AND POST DATA. ALSO MAKE A FEW MORE GET METHODS FOR PASS VERIFICATION AND REMOVE PASSWORD FROM THIS GET AT SOME POINT SO.
                 Posts = u.Posts,
                 Comments = u.Comments
                 
@@ -45,14 +47,62 @@ namespace social_blog_API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-
+            
             if (user == null)
             {
                 return NotFound();
             }
+
+            var userDTO = new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Description = user.Description,
+
+            };
+            
+
+            return userDTO;
+        }
+
+        [HttpGet("post/{postId}")]
+        public async Task<ActionResult<Comment>> GetCommentByPost(int postId)
+        {
+            var post = await _context.Posts.FindAsync(postId);
+            if (post == null)
+            {
+                return NotFound();
+            }
+            var user = await _context.Users.FindAsync(post.AuthorId);
+            var userDTO = new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Description = user.Description
+            };
+            return Ok(userDTO);
+        }
+
+        //TODO: Work out verification
+        [HttpGet("verify/{id}")]
+        public async Task<ActionResult<UserDTO>> VerifyUserLogin(int id, UserDTO user)
+        {
+            throw new NotImplementedException();
+            var existingUser = await _context.Users.FindAsync(id);
+            if (existingUser == null)
+            {
+                return NotFound();
+            }
+            var userDTO = new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Password = user.Password
+            };
+            
 
             return user;
         }
@@ -117,7 +167,7 @@ namespace social_blog_API.Controllers
                 Description = newUser.Description,
             };
             
-            return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
+            return CreatedAtAction("GetUser", new { id = newUser.Id }, newUser);
             //TODO: ADD HASH FOR PASSWORDS WHEN CREATING ACCOUNTS AND MAKE IT SO THAT THAT WHEN LOGGING IN, A GET WILL BE CALLED AND THE PASSWORD THE USER INPUTS WILL BE HASED IN THE SAME WAY AND COMPARED TO THE DATABASES HASHED PASSWORD
 
 

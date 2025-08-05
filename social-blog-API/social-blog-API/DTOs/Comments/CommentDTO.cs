@@ -2,7 +2,7 @@
 
 namespace social_blog_API.DTOs.Comments
 {
-    public class CommentsDTO
+    public class CommentDTO
     {
         public int Id { get; set; }
         public string Content { get; set; }

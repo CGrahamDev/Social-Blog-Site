@@ -26,7 +26,7 @@ namespace social_blog_API.Controllers
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
         {
             var commentList = await _context.Comments.ToListAsync();
-            var commentDTOs = commentList.Select(e => new CommentsDTO
+            var commentDTOs = commentList.Select(e => new CommentDTO
             {
                 Id = e.Id,
                 Content = e.Content,
@@ -47,9 +47,44 @@ namespace social_blog_API.Controllers
             {
                 return NotFound();
             }
-
+            //var commentDTO
             return comment;
         }
+
+        //TODO: ADD A GET BY POST ID
+        // GET: api/Comments/post/0
+        [HttpGet("post/{postId}")]
+        public async Task<ActionResult<Comment>> GetCommentByPost(int postId)
+        {
+            var commentList = await _context.Comments.Where(x => x.PostId == postId).ToListAsync();
+            var commentsDTO = commentList.Select(x => new CommentDTO
+            {
+                Id = x.Id,
+                Content = x.Content,
+                Likes = x.Likes,
+                UserId = x.UserId,
+                PostId = x.PostId
+            });
+            return Ok(commentsDTO);
+        }
+        // GET: api/Comments/user/userId
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<Comment>> GetCommentsByUser(int userId)
+        {
+            var commentList = await _context.Comments.Where(x => x.UserId == userId).ToListAsync();
+            var commentsDTO = commentList.Select(x => new CommentDTO
+            {
+                Id = x.Id,
+                Content = x.Content,
+                Likes = x.Likes,
+                UserId = x.UserId,
+                PostId = x.PostId
+            });
+            return Ok(commentsDTO);
+        }
+
+
+
 
         // PUT: api/Comments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -85,19 +120,32 @@ namespace social_blog_API.Controllers
         // POST: api/Comments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Comment>> PostComment(Comment comment)
+        public async Task<ActionResult<CreateCommentsDTO>> PostComment(CreateCommentsDTO comment)
         {
-
-            _context.Comments.Add(comment);
+            var newComment = new Comment
+            {
+                Content = comment.Content.Trim(),
+                PostId = comment.PostId,
+                UserId = comment.UserId
+            };
+            _context.Comments.Add(newComment);
             await _context.SaveChangesAsync();
+            var createComment = new CreateCommentsDTO
+            {
+                Id = newComment.Id,
+                Content = newComment.Content,
+                PostId = newComment.PostId,
+                UserId = newComment.UserId
+            };
 
-            return CreatedAtAction("GetComment", new { id = comment.Id }, comment);
+            return CreatedAtAction("GetComment", new { id = newComment.Id }, createComment);
         }
 
         // DELETE: api/Comments/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
+            
             var comment = await _context.Comments.FindAsync(id);
             if (comment == null)
             {

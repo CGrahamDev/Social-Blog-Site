@@ -2,7 +2,7 @@
 
 namespace social_blog_API.DTOs.Users
 {
-    public class UsersDTO
+    public class UserDTO
     {
         public int Id { get; set; }
 
