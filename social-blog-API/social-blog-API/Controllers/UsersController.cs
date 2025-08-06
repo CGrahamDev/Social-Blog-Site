@@ -85,7 +85,7 @@ namespace social_blog_API.Controllers
         }
 
         //TODO: Work out verification
-        [HttpGet("verify/{username}")]
+        [HttpPost("verify/{username}")]
         public async Task<ActionResult<UserVerificationDTO>> VerifyUserLogin(string username, UserDTO user)
         {
             //throw new NotImplementedException();
@@ -105,7 +105,7 @@ namespace social_blog_API.Controllers
                 Password = user.Password,
                 IsVerified = isLoginSuccesful
             };
-            return userVerify.IsVerified ? Ok(userVerify) : BadRequest();
+            return userVerify.IsVerified ? Ok(userVerify) : Unauthorized();
 
 
 
