@@ -7,6 +7,7 @@ using social_blog_API.DTOs.Users;
 using social_blog_API.Entities;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -37,9 +38,7 @@ namespace social_blog_API.Controllers
                 Username = u.Username,
                 Password = u.Password,
                 Description = u.Description,
-                Posts = u.Posts,
-                Comments = u.Comments
-                
+
             });
             return Ok(userDTO);
         }
@@ -49,7 +48,7 @@ namespace social_blog_API.Controllers
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            
+
             if (user == null)
             {
                 return NotFound();
@@ -62,7 +61,7 @@ namespace social_blog_API.Controllers
                 Description = user.Description,
 
             };
-            
+
 
             return userDTO;
         }
@@ -86,38 +85,56 @@ namespace social_blog_API.Controllers
         }
 
         //TODO: Work out verification
-        [HttpGet("verify/{id}")]
-        public async Task<ActionResult<UserDTO>> VerifyUserLogin(int id, UserDTO user)
+        [HttpGet("verify/{username}")]
+        public async Task<ActionResult<UserVerificationDTO>> VerifyUserLogin(string username, UserDTO user)
         {
-            throw new NotImplementedException();
-            var existingUser = await _context.Users.FindAsync(id);
-            if (existingUser == null)
+            //throw new NotImplementedException();
+            bool doesUserExist = UserExists(username);
+            if (doesUserExist == false)
             {
                 return NotFound();
             }
-            var userDTO = new UserDTO
+            var existingUser = await _context.Users.SingleAsync(x => x.Username == username);
+            bool isLoginSuccesful = VerifyPassword(user.Password, existingUser.Password);
+            
+            //AS OF RIGHT NOW DOESNT DO MUCH
+            var userVerify = new UserVerificationDTO
             {
                 Id = user.Id,
                 Username = user.Username,
-                Password = user.Password
+                Password = user.Password,
+                IsVerified = isLoginSuccesful
             };
-            
+            return userVerify.IsVerified ? Ok(userVerify) : BadRequest();
 
-            return user;
+
+
+            
         }
+
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserDTO user)
         {
             if (id != user.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(user.Password);
+            byte[] tmpHash = MD5.HashData(tmpSource);
+            user.Password = tmpHash.ToString();
 
+
+            var edittedUser = await _context.Users.FindAsync(user.Id);
+            edittedUser.Username = user.Username;
+            edittedUser.Password = user.Password;
+            edittedUser.Description = user.Description;
+
+            _context.Entry(edittedUser).State = EntityState.Modified;
+            //Oh my fuicking god I lovce my new keyboard so muc
             try
             {
                 await _context.SaveChangesAsync();
@@ -166,7 +183,7 @@ namespace social_blog_API.Controllers
                 Password = newUser.Password,
                 Description = newUser.Description,
             };
-            
+
             return CreatedAtAction("GetUser", new { id = newUser.Id }, newUser);
 
         }
@@ -191,5 +208,33 @@ namespace social_blog_API.Controllers
         {
             return _context.Users.Any(e => e.Id == id);
         }
+        private bool UserExists(string username)
+        {
+
+            return _context.Users.Any(e => e.Username == username);
+        }
+        private bool VerifyPassword(string password, string attemptedPassword)
+        {
+            byte[] userPassword = ASCIIEncoding.ASCII.GetBytes(password);
+            byte[] attemptedPasswordToBytes = ASCIIEncoding.ASCII.GetBytes(attemptedPassword);
+            bool isEqualValues = true;
+            if (userPassword.Length == attemptedPasswordToBytes.Length)
+            {
+                for (int i = 0; i < userPassword.Length; i++)
+                {
+                    if (userPassword[i] == attemptedPasswordToBytes[i])
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        isEqualValues = false;
+                        return isEqualValues;
+                    }
+                }
+            }
+            return isEqualValues;
+        }
     }
 }
+
