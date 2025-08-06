@@ -83,10 +83,11 @@ namespace social_blog_API.Controllers
             };
             return Ok(userDTO);
         }
-
+        
+        //I lied in commit. Doesnt work properly
         //TODO: Work out verification
         [HttpPost("verify/{username}")]
-        public async Task<ActionResult<UserVerificationDTO>> VerifyUserLogin(string username, UserDTO user)
+        public async Task<ActionResult<UserVerificationDTO>> VerifyUserLogin(string username, string password)
         {
             //throw new NotImplementedException();
             bool doesUserExist = UserExists(username);
@@ -95,23 +96,20 @@ namespace social_blog_API.Controllers
                 return NotFound();
             }
             var existingUser = await _context.Users.SingleAsync(x => x.Username == username);
-            bool isLoginSuccesful = VerifyPassword(user.Password, existingUser.Password);
+            
             
             //AS OF RIGHT NOW DOESNT DO MUCH
             var userVerify = new UserVerificationDTO
             {
-                Id = user.Id,
-                Username = user.Username,
-                Password = user.Password,
-                IsVerified = isLoginSuccesful
+                Id = existingUser.Id,
+                Username = existingUser.Username,
+                Password = existingUser.Password,
+                
             };
-            return userVerify.IsVerified ? Ok(userVerify) : Unauthorized();
-
-
-
-            
+            userVerify.IsVerified = VerifyPassword(password, existingUser.Password);
+            return userVerify.IsVerified ? Ok(userVerify) : Unauthorized();     
         }
-
+        
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
