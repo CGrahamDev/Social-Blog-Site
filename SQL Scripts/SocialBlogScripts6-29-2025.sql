@@ -38,3 +38,6 @@ SELECT * FROM Users;
 SELECT * FROM Posts;
 SELECT * FROM Comments;
 
+DELETE FROM Comments;
+DELETE FROM Posts;
+DELETE FROM Users;

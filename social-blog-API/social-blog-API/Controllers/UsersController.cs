@@ -67,7 +67,7 @@ namespace social_blog_API.Controllers
         }
 
         [HttpGet("post/{postId}")]
-        public async Task<ActionResult<Comment>> GetCommentByPost(int postId)
+        public async Task<ActionResult<Comment>> GetUserByPost(int postId)
         {
             var post = await _context.Posts.FindAsync(postId);
             if (post == null)
@@ -83,38 +83,14 @@ namespace social_blog_API.Controllers
             };
             return Ok(userDTO);
         }
-        
-        //I lied in commit. Doesnt work properly
-        //TODO: Work out verification
-        [HttpPost("verify/{username}")]
-        public async Task<ActionResult<UserVerificationDTO>> VerifyUserLogin(string username, string password)
-        {
-            //throw new NotImplementedException();
-            bool doesUserExist = UserExists(username);
-            if (doesUserExist == false)
-            {
-                return NotFound();
-            }
-            var existingUser = await _context.Users.SingleAsync(x => x.Username == username);
-            
-            
-            //AS OF RIGHT NOW DOESNT DO MUCH
-            var userVerify = new UserVerificationDTO
-            {
-                Id = existingUser.Id,
-                Username = existingUser.Username,
-                Password = existingUser.Password,
-                
-            };
-            userVerify.IsVerified = VerifyPassword(password, existingUser.Password);
-            return userVerify.IsVerified ? Ok(userVerify) : Unauthorized();     
-        }
-        
+
+
+
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, UserDTO user)
+        public async Task<IActionResult> PutUser(int id, EditUserDTO user)
         {
             if (id != user.Id)
             {
@@ -132,7 +108,6 @@ namespace social_blog_API.Controllers
             edittedUser.Description = user.Description;
 
             _context.Entry(edittedUser).State = EntityState.Modified;
-            //Oh my fuicking god I lovce my new keyboard so muc
             try
             {
                 await _context.SaveChangesAsync();
@@ -158,8 +133,17 @@ namespace social_blog_API.Controllers
         [HttpPost]
         public async Task<ActionResult<CreateUsersDTO>> PostUser(CreateUsersDTO user)
         {
-
-
+            user.Username = user.Username.ToLower().Trim();
+            //Prevents users from creating new accounts with already used usernames
+            var users = await _context.Users.ToListAsync();
+            foreach (User u in users)
+            {
+                if (u.Username.ToLower().Trim() == user.Username)
+                {
+                    return BadRequest("Error: User with that name already exists");
+                }
+            }
+            //PASSWORD HASHING/ TODO: TEST IN FRONTEND TO MAKE SURE DATA IS PROPERLY FORMATTED
             byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(user.Password);
             byte[] tmpHash = MD5.HashData(tmpSource);
             user.Password = tmpHash.ToString();
@@ -174,7 +158,7 @@ namespace social_blog_API.Controllers
             await _context.SaveChangesAsync();
 
 
-            var createUser = new CreateUsersDTO()
+            var createUser = new UserDTO()
             {
                 Id = newUser.Id,
                 Username = newUser.Username,
@@ -182,9 +166,10 @@ namespace social_blog_API.Controllers
                 Description = newUser.Description,
             };
 
-            return CreatedAtAction("GetUser", new { id = newUser.Id }, newUser);
+            return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
 
         }
+
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
@@ -211,28 +196,7 @@ namespace social_blog_API.Controllers
 
             return _context.Users.Any(e => e.Username == username);
         }
-        private bool VerifyPassword(string password, string attemptedPassword)
-        {
-            byte[] userPassword = ASCIIEncoding.ASCII.GetBytes(password);
-            byte[] attemptedPasswordToBytes = ASCIIEncoding.ASCII.GetBytes(attemptedPassword);
-            bool isEqualValues = true;
-            if (userPassword.Length == attemptedPasswordToBytes.Length)
-            {
-                for (int i = 0; i < userPassword.Length; i++)
-                {
-                    if (userPassword[i] == attemptedPasswordToBytes[i])
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        isEqualValues = false;
-                        return isEqualValues;
-                    }
-                }
-            }
-            return isEqualValues;
-        }
+
     }
 }
 

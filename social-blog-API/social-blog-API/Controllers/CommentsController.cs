@@ -88,14 +88,19 @@ namespace social_blog_API.Controllers
         // PUT: api/Comments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutComment(int id, Comment comment)
+        public async Task<IActionResult> PutComment(int id, CommentDTO comment)
         {
             if (id != comment.Id)
             {
                 return BadRequest();
             }
-
-            _context.Entry(comment).State = EntityState.Modified;
+            var commentToEdit = new Comment
+            {
+                Id = comment.Id,
+                PostId = comment.PostId,
+                UserId = comment.UserId
+            };
+            _context.Entry(commentToEdit).State = EntityState.Modified;
 
             try
             {

@@ -7,6 +7,6 @@
 
         public string Content { get; set; } = null!;
 
-        public int? AuthorId { get; set; }
+        public int AuthorId { get; set; }
     }
 }
