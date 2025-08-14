@@ -8,7 +8,7 @@ import { CommentDTO } from '../DTOs/comment-dto';
   providedIn: 'root'
 })
 export class SocialBlogAPIService {
-  baseUrl : string  = 'https://localhost:7017/api/';
+  baseUrl : string  = 'https://localhost:7017/api';
   constructor(private http: HttpClient) { }
   //Users
   getUsers(){

@@ -1,1 +1,9 @@
 <p>home works!</p>
+
+<div class="post" *ngFor="let post of posts">
+    <div class="title">{{post.title}}</div>
+    <div class="content">{{post.content}}</div>
+    <div class="buttons">
+        <button [routerLink]="['/Post', post.id]">comments</button>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 export interface CommentDTO {
-    Id: number | null;
-    Content: string;
-    Likes: number;
-    UserId: number;
-    PostId: number;
+    id: number | null;
+    content: string;
+    likes: number;
+    userId: number;
+    postId: number;
 }

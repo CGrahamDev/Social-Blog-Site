@@ -5,7 +5,7 @@ import { PostComponent } from './post/post.component';
 
 export const routes: Routes = [
     {path:'Home', component:HomeComponent},
-    {path:'Profile', component:ProfileComponent},
-    {path:'Post', component:PostComponent},
+    {path:'Profile/:id', component:ProfileComponent},
+    {path:'Post/:id', component:PostComponent,},
     {path:'', redirectTo:'Home', pathMatch:'full',}
 ];
