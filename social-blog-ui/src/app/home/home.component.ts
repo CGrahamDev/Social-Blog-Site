@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PostDTO } from '../DTOs/post-dto';
 import { RouterLink } from '@angular/router';
+import { UserDTO } from '../DTOs/user-dto';
 
 @Component({
   selector: 'app-home',
@@ -13,8 +14,9 @@ import { RouterLink } from '@angular/router';
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
-    posts: PostDTO[] = [];
+    posts: any[] = [];
     users: any[] = [];
+    //userToPosts: Record<UserDTO, PostDTO[]>;
     
     selectedPost: any = null;
     constructor(private api: SocialBlogAPIService){};
@@ -31,6 +33,10 @@ export class HomeComponent implements OnInit {
           console.log('successfully recieved posts');
         }else{
           console.log('failed to fetch post information');
-    }}
+    }
+  }
+  getPostAuthors(postId: number):any{
+    this.api.getUserByPost(postId);
+  }
 }
 
