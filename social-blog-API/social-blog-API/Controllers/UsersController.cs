@@ -170,6 +170,35 @@ namespace social_blog_API.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<ActionResult<CheckUserVerificationDTO>> Login(UserVerificationDTO accountLoginAttemptInfo)
+        {
+            accountLoginAttemptInfo.Username = accountLoginAttemptInfo.Username.ToLower().Trim();
+            User loginAccount;
+            CheckUserVerificationDTO checkLoginStatus;
+            if (UserExists(accountLoginAttemptInfo.Username) == false)
+            {
+                return BadRequest("username or password is invalid");
+            }
+            else {
+                loginAccount = _context.Users.Single(x => x.Username == accountLoginAttemptInfo.Username);
+            }
+
+            //PASSWORD HASHING/ TODO: TEST IN FRONTEND TO MAKE SURE DATA IS PROPERLY FORMATTED
+            byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(accountLoginAttemptInfo.Password);
+            byte[] tmpHash = MD5.HashData(tmpSource);
+            accountLoginAttemptInfo.Password = tmpHash.ToString();
+            if(accountLoginAttemptInfo.Password == loginAccount.Password)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+               // return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
+        }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]

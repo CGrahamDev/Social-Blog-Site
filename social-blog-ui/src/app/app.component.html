@@ -1,7 +1,9 @@
-<nav class="navigation-bar">
-  <a routerLink="/Home">Home<br></a>
-  <a [routerLink]="['/Profile/', selectedUserId]">Profile</a>
-  <button onclick="">register</button>
-  <button>login</button>
-</nav> 
-<router-outlet></router-outlet>
+<div class="container">
+  <nav class="navigation-bar">
+    <a routerLink="/Home">Home<br></a>
+    <a [routerLink]="['/Profile/', selectedUserId]">Profile</a>
+    <button onclick="">register</button>
+    <button>login</button>
+  </nav>
+  <router-outlet></router-outlet>
+</div>
