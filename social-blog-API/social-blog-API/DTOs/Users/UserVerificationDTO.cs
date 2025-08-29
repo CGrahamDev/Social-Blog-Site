@@ -5,7 +5,6 @@ namespace social_blog_API.DTOs.Users
 {
     public class UserVerificationDTO
     {
-        public int Id { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
     }

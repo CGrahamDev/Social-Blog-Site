@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol;
@@ -144,9 +145,10 @@ namespace social_blog_API.Controllers
                 }
             }
             //PASSWORD HASHING/ TODO: TEST IN FRONTEND TO MAKE SURE DATA IS PROPERLY FORMATTED
-            byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(user.Password);
-            byte[] tmpHash = MD5.HashData(tmpSource);
-            user.Password = tmpHash.ToString();
+
+            byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+            string hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(user.Password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 100000, numBytesRequested: 256 / 8));
+            user.Password = hashedPassword;
             var newUser = new User
             {
                 Username = user.Username,
@@ -169,9 +171,9 @@ namespace social_blog_API.Controllers
             return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
 
         }
-
-        [HttpPost]
-        public async Task<ActionResult<CheckUserVerificationDTO>> Login(UserVerificationDTO accountLoginAttemptInfo)
+        /*
+        [HttpPost("login/")]
+        public async Task<ActionResult<bool>> Login(UserVerificationDTO accountLoginAttemptInfo)
         {
             accountLoginAttemptInfo.Username = accountLoginAttemptInfo.Username.ToLower().Trim();
             User loginAccount;
@@ -183,23 +185,25 @@ namespace social_blog_API.Controllers
             else {
                 loginAccount = _context.Users.Single(x => x.Username == accountLoginAttemptInfo.Username);
             }
-
+            
+            string savedPassword = loginAccount.Password;
+            byte[] hashBytes = Convert.FromBase64String(savedPassword);
+            byte[] salt = hashBytes[..16];
+            
             //PASSWORD HASHING/ TODO: TEST IN FRONTEND TO MAKE SURE DATA IS PROPERLY FORMATTED
-            byte[] tmpSource = ASCIIEncoding.ASCII.GetBytes(accountLoginAttemptInfo.Password);
-            byte[] tmpHash = MD5.HashData(tmpSource);
-            accountLoginAttemptInfo.Password = tmpHash.ToString();
-            if(accountLoginAttemptInfo.Password == loginAccount.Password)
+            var hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(accountLoginAttemptInfo.Password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 100_000, numBytesRequested: 256 / 8));
+            byte[] enteredHash = Convert.FromBase64String(hashedPassword);
+
+            byte[] storedHash = hashBytes[16..48];
+            if (!CryptographicOperations.FixedTimeEquals(storedHash, enteredHash))
             {
-                return Ok();
+                throw new UnauthorizedAccessException("Invalid password.");
             }
-            else
-            {
-                return BadRequest();
-            }
+            return Ok(true);
 
                // return CreatedAtAction("GetUser", new { id = newUser.Id }, createUser);
         }
-
+        */
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
